@@ -1,7 +1,7 @@
 -- Run state. A run is a FireRed session carrying `modData.roguelike`; New
 -- Game creates one (the vanilla adventure cannot be started while the mod is
 -- enabled), generates the first layer from the run seed, and places the
--- player at its first area's entry.
+-- player in its town, in front of the Pokémon Center.
 
 local R = ...
 
@@ -29,9 +29,9 @@ function Run.begin(session, game)
   local state = { version = Run.STATE_VERSION, seed = seedFor(session), layer = 1 }
   session.modData = type(session.modData) == "table" and session.modData or {}
   session.modData.roguelike = state
-  local first = R.world.build(state, game)[1]
-  local entry = first.roguelike.layout.entry
-  session.map, session.x, session.y = first.id, entry.x, entry.y
+  local town = R.world.build(state, game)[1]
+  local start = town.roguelike.layout.start -- in front of the Pokémon Center
+  session.map, session.x, session.y = town.id, start.x, start.y
   session.facing = "down"
   return session
 end

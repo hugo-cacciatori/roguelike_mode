@@ -64,7 +64,8 @@ end
 local seeds = { 11, 222, 3333 }
 for _, seed in ipairs(seeds) do
   local state = { version = 2, seed = seed, layer = 1 }
-  local def, report = R.world.build(state, game)[1], nil
+  local _, layer = R.world.build(state, game)
+  local def = layer.forest
   local label = def.id .. " seed " .. seed
   local layout = def.roguelike.layout
   check(game.data.maps[def.id] == def, label .. ": registered on the session game")

@@ -23,6 +23,7 @@ function Paint.solve(tiles, adj, classes, w, h, rng, limits)
   end
   local function domainList(allowed)
     if type(allowed) == "string" then return byClass[allowed] end
+    if allowed.tiles then return #allowed.tiles > 0 and allowed.tiles or nil end -- explicit tile indices
     local list = {}
     for _, class in ipairs(allowed) do
       for _, i in ipairs(byClass[class] or {}) do list[#list + 1] = i end

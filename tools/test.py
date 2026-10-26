@@ -21,7 +21,7 @@ from lupa.luajit21 import LuaRuntime
 
 MOD_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_IMPORTS = Path(os.environ.get("APPDATA", "")) / "pokemon-love2d"
-SUITES = ("unit", "integration", "takeover", "wild")
+SUITES = ("unit", "integration", "takeover", "wild", "town")
 SCENARIOS = {"takeover": ("adventure", "fresh")}
 
 

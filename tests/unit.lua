@@ -80,5 +80,6 @@ check(Corpus.environmentOf("EM_ROUTE101", { mapType = 3 }, 0.1) == "route", "lan
 check(Corpus.environmentOf("FR_PALLET_TOWN_PROFESSOR_OAKS_LAB", { mapType = 8 }) == "interior_lab", "lab interior")
 check(Corpus.environmentOf("EM_OLDALE_TOWN_POKEMON_CENTER_1F", { mapType = 8 }) == "interior_center", "center interior")
 check(Corpus.environmentOf("EM_LITTLEROOT_TOWN", { mapType = 1 }) == "town", "town")
+check(Corpus.environmentOf("EM_SECRET_BASE_BLUE_CAVE1", { mapType = 9 }) == "secret_base", "secret bases are not houses")
 
 print(("PASS unit: %d assertions"):format(H.total))

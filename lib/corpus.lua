@@ -39,7 +39,8 @@ local INTERIOR_KINDS = {
 function Corpus.environmentOf(id, header, waterShare)
   local mapType, cave = tonumber(header.mapType) or 0, tonumber(header.cave) or 0
   if id:find("FOREST") or id:find("WOODS") then return "forest" end
-  if mapType == 8 or mapType == 9 then
+  if mapType == 9 then return "secret_base" end
+  if mapType == 8 then
     for _, k in ipairs(INTERIOR_KINDS) do
       if id:find(k[1]) then return "interior_" .. k[2] end
     end

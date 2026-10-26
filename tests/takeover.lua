@@ -83,9 +83,9 @@ local session = newSession("RUNNER")
 local state = R.run.state(session)
 check(state and state.layer == 1 and type(state.seed) == "number", "New Game carries run state")
 local first = game.data.maps[session.map]
-check(first and first.roguelike and first.roguelike.env, "New Game registered a generated area")
-local entry = first.roguelike.layout.entry
-check(session.x == entry.x and session.y == entry.y, "New Game starts at the generated entry")
+check(first and first.roguelike and first.roguelike.env == "town", "New Game registered a generated town")
+local start = first.roguelike.layout.start
+check(session.x == start.x and session.y == start.y, "New Game starts in front of the town's Pokémon Center")
 check(Map.load(nil, game, session.map, { depth1Connections = false }), "the run's start map loads")
 local firstCells = first.midLayout.cells
 

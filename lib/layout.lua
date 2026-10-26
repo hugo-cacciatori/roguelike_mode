@@ -182,4 +182,78 @@ function Layout.outdoorCoarse(rng, opts)
   }
 end
 
+-- Space kept around a town building for roof tops and side transitions.
+Layout.TOWN_MARGIN = { up = 3, side = 2 }
+
+-- Town: a tree ring with an exit at the bottom edge, open ground inside, and
+-- building footprints placed with room in front of every door. `buildings`
+-- is a list of { w, h, doorDX }; placements come back in the same order.
+-- Footprint cells are marked "stamp" (the painter fixes their tiles).
+function Layout.town(rng, opts)
+  local w, h = opts.width or 40, opts.height or 34
+  local g = grid(w, h, "walk")
+  for y = 0, h - 1 do
+    for x = 0, w - 1 do
+      if x < 2 or y < 2 or x >= w - 2 or y >= h - 2 then g[idx(g, x, y)] = "block" end
+    end
+  end
+  local exit = { x = rng:int(4, w - 6), y = h - 1 }
+  for dy = 0, 1 do
+    for dx = 0, 1 do g[idx(g, exit.x + dx, h - 1 - dy)] = "walk" end
+  end
+
+  local m = Layout.TOWN_MARGIN
+  local taken = {}
+  local function free(x0, y0, bw, bh)
+    -- the footprint, room for roof and side transitions, 2 rows in front of the door
+    for y = y0 - m.up, y0 + bh + 2 do
+      for x = x0 - m.side, x0 + bw - 1 + m.side do
+        if x < 0 or y < 0 or x >= w or y >= h - 3 or taken[y * w + x] then return false end
+      end
+    end
+    return true
+  end
+  local placed = {}
+  for i, b in ipairs(opts.buildings) do
+    for _ = 1, 200 do
+      local x0, y0 = rng:int(2 + m.side, w - 2 - m.side - b.w), rng:int(2 + m.up, h - 6 - b.h)
+      if free(x0, y0, b.w, b.h) then
+        for y = y0 - m.up, y0 + b.h + 2 do
+          for x = x0 - m.side, x0 + b.w - 1 + m.side do taken[y * w + x] = true end
+        end
+        for y = y0, y0 + b.h - 1 do
+          for x = x0, x0 + b.w - 1 do g[idx(g, x, y)] = "stamp" end
+        end
+        placed[i] = { x = x0, y = y0, door = { x = x0 + b.doorDX, y = y0 + b.h - 1 } }
+        break
+      end
+    end
+    if not placed[i] then return nil, "no room for building " .. i end
+  end
+
+  -- Start: open ground in front of the first building (the Pokémon Center).
+  local d = placed[1].door
+  return { grid = g, width = w, height = h, exit = exit, start = { x = d.x, y = d.y + 2 },
+    buildings = placed }
+end
+
+-- Interior: walls along the top (2 rows) and sides, floor, an exit mat on the
+-- bottom wall, and an aisle from the mat to the room's functional spot.
+function Layout.interior(rng, w, h)
+  local g = grid(w, h, "walk")
+  for y = 0, h - 1 do
+    for x = 0, w - 1 do
+      if y < 2 or x == 0 or x == w - 1 or y == h - 1 then g[idx(g, x, y)] = "block" end
+    end
+  end
+  local exit = { x = rng:int(2, w - 3), y = h - 1 }
+  g[idx(g, exit.x, exit.y)] = "door"
+  local spot = { x = math.floor(w / 2), y = 2 }
+  local aisle = {}
+  for y = spot.y, h - 2 do aisle[#aisle + 1] = { x = exit.x, y = y } end
+  local step = spot.x >= exit.x and 1 or -1
+  for x = exit.x, spot.x, step do aisle[#aisle + 1] = { x = x, y = spot.y + 1 } end
+  return { grid = g, width = w, height = h, exit = exit, spot = spot, aisle = aisle }
+end
+
 return Layout

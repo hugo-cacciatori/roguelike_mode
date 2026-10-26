@@ -92,7 +92,8 @@ end
 check(same, "tables are deterministic per seed")
 
 -- 4. The engine's own encounter step rolls a generated area's table.
-local def = R.world.build({ version = 2, seed = 4242, layer = 2 }, game)[1]
+local _, layerAreas = R.world.build({ version = 2, seed = 4242, layer = 2 }, game)
+local def = layerAreas.forest
 local tbl = def.roguelike.encounters
 check(tbl and tbl.land, "generated area carries a land table")
 check(Encounters.tableFor(def.id) ~= nil, "engine resolves the area's table")

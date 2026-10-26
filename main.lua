@@ -5,7 +5,7 @@
 -- lib/ and data/ and share the table `R`, loaded through mod:read.
 
 local MODULES = {
-  "lib/sources", "lib/catalog", "lib/atlas", "lib/rng", "lib/corpus",
+  "lib/sources", "lib/catalog", "lib/atlas", "lib/rng", "lib/corpus", "lib/buildings",
   "lib/layout", "lib/paint", "lib/generate", "lib/wild", "lib/world", "lib/run", "lib/saves",
 }
 
