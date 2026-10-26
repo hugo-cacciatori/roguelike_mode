@@ -1,8 +1,8 @@
 -- Headless harness shared by the suites. The engine runs from its checkout;
--- love.filesystem reads resolve against IMPORTS_ROOT (the player's save
--- directory or a staged copy) exactly as the game's save-dir lookups would.
--- Nothing may be written there: io.open in write mode, love.filesystem.write,
--- io.popen and os.execute all fail loudly.
+-- love.filesystem game-data reads resolve against IMPORTS_ROOT (the player's
+-- save directory or a staged copy) exactly as the game's save-dir lookups
+-- would. Nothing is ever written there: io.open in write mode, io.popen and
+-- os.execute fail loudly, and love.filesystem writes go to memory.
 
 package.path = "./?.lua;./?/init.lua;" .. package.path
 
@@ -22,9 +22,44 @@ function H.check(value, message)
   if not value then error("FAIL: " .. message, 2) end
 end
 
--- import_read / import_info come from tools/test.py: read-only and confined
--- to IMPORTS_ROOT.
-local function readImport(path) return import_read(tostring(path)) end
+-- Two stores behind love.filesystem. Game data (<version>/data|assets/...)
+-- comes from IMPORTS_ROOT through tools/test.py (read-only, confined to that
+-- root). Everything else -- options.lua, saves/, save files, mod caches -- is
+-- an in-memory disk that starts empty, so real SaveData code runs without
+-- ever seeing or touching the player's settings and saves.
+local VERSIONS = { red = true, blue = true, yellow = true, gold = true, silver = true, crystal = true,
+  firered = true, leafgreen = true, ruby = true, sapphire = true, emerald = true }
+
+local function norm(path) return (tostring(path):gsub("\\", "/"):gsub("^/+", "")) end
+
+local function isImport(path)
+  local first, second = norm(path):match("^([^/]+)/([^/]+)")
+  if first == "data" or first == "assets" or first == "updates" then return true end
+  return VERSIONS[first] == true and (second == "data" or second == "assets")
+end
+
+H.disk = {}
+
+local function readImport(path) return import_read(norm(path)) end
+
+local function diskInfo(path)
+  path = norm(path)
+  if H.disk[path] then return { type = "file", size = #H.disk[path] } end
+  local prefix = path .. "/"
+  for key in pairs(H.disk) do
+    if key:sub(1, #prefix) == prefix then return { type = "directory" } end
+  end
+end
+
+local function diskItems(path)
+  local prefix, seen, out = norm(path) .. "/", {}, {}
+  for key in pairs(H.disk) do
+    local child = key:sub(1, #prefix) == prefix and key:sub(#prefix + 1):match("^[^/]+")
+    if child and not seen[child] then seen[child] = true; out[#out + 1] = child end
+  end
+  table.sort(out)
+  return out
+end
 
 -- Headless ImageData: raw RGBA string plus the paste the atlas merge uses.
 local function imageData(w, h, _format, rgba)
@@ -64,14 +99,34 @@ love = {
     end,
   },
   filesystem = {
-    read = function(path) return readImport(path) end,
-    getInfo = function(path)
-      local kind, size = import_info(tostring(path))
-      if kind then return { type = kind, size = size } end
-      return nil
+    read = function(path)
+      if isImport(path) then return readImport(path) end
+      return H.disk[norm(path)]
     end,
-    write = function(path) error("headless suite is read-only: " .. tostring(path), 2) end,
-    getSaveDirectory = function() return IMPORTS_ROOT end,
+    getInfo = function(path)
+      if isImport(path) then
+        local kind, size = import_info(norm(path))
+        if kind then return { type = kind, size = size } end
+        return nil
+      end
+      return diskInfo(path)
+    end,
+    write = function(path, body)
+      if isImport(path) then error("headless suite never writes imports: " .. tostring(path), 2) end
+      H.disk[norm(path)] = body
+      return true
+    end,
+    remove = function(path)
+      if isImport(path) then error("headless suite never removes imports: " .. tostring(path), 2) end
+      H.disk[norm(path)] = nil
+      return true
+    end,
+    createDirectory = function() return true end,
+    getDirectoryItems = function(path)
+      if isImport(path) then return {} end
+      return diskItems(path)
+    end,
+    getSaveDirectory = function() return "MEMORY" end,
   },
 }
 

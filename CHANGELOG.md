@@ -12,6 +12,9 @@ All notable changes to the Roguelike Layer-World Mode mod will be documented in 
 - Merged tileset pairs that survive the engine's tileset, behaviour and encounter-type reloads.
 - Composite maps spliced from real map chunks; first composite: Viridian Forest + Petalburg Woods.
 - Headless tests through the engine's real loader, map loading and collision rules.
+- Game takeover: while enabled, New Game starts a run on the first composite map, and runs save to their own "Roguelike run" slot; the adventure's slot is never written.
+- Crash-safe slot switching: `options.lua` keeps the adventure active, so starting the game without the mod continues the adventure. Without an existing FireRed save, an empty "Adventure" slot is created for that purpose.
+- The title screen's Continue panel is refreshed to show the run; saving a session that is not a run is refused.
 
 ## [0.1.0] - 2026-10-25
 

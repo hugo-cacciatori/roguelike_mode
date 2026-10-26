@@ -21,7 +21,8 @@ from lupa.luajit21 import LuaRuntime
 
 MOD_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_IMPORTS = Path(os.environ.get("APPDATA", "")) / "pokemon-love2d"
-SUITES = ("unit", "integration")
+SUITES = ("unit", "integration", "takeover")
+SCENARIOS = {"takeover": ("adventure", "fresh")}
 
 
 def shipped_files(mod):
@@ -89,8 +90,11 @@ def run(engine, mod, imports, suites=SUITES):
     try:
         os.chdir(engine)
         for name in suites:
-            lua = runtime(engine, mod, imports, MOD_ROOT / "tests" / "out")
-            lua.execute((MOD_ROOT / "tests" / f"{name}.lua").read_bytes())
+            for scenario in SCENARIOS.get(name, (None,)):
+                lua = runtime(engine, mod, imports, MOD_ROOT / "tests" / "out")
+                if scenario:
+                    lua.globals().SCENARIO = scenario.encode()
+                lua.execute((MOD_ROOT / "tests" / f"{name}.lua").read_bytes())
     finally:
         os.chdir(previous)
 
