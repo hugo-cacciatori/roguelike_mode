@@ -1,11 +1,11 @@
 {
   "id": "roguelike_mode",
   "name": "Roguelike Layer-World Mode",
-  "version": "0.1.0",
-  "api": 2,
+  "version": "0.2.0-dev.1",
+  "api": 3,
   "entry": "main.lua",
-  "games": ["gen3"],
+  "games": ["firered"],
   "permissions": ["engine_internals"],
-  "description": "Procedural 8-layer roguelike adventure: composite map generation, 8 randomized Gym Leaders, scaled trainers, unique facilities, starter draft, and Elite 4 gauntlet.",
+  "description": "Run-based FireRed adventure whose layers are spliced from real Kanto and Hoenn maps. Needs FireRed imported; Emerald adds Hoenn chunks. Development build.",
   "author": "Hugo Cacciatori"
 }

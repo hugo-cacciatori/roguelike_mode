@@ -2,6 +2,17 @@
 
 All notable changes to the Roguelike Layer-World Mode mod will be documented in this file.
 
+## [Unreleased] - 0.2.0-dev
+
+### Changed
+- Rebuilt as a FireRed-only `api` 3 mod split into `lib/` and `data/` modules. The 0.1.0 run-planning model, which never reached the game, is removed; its boss and starter tables moved to `data/`.
+
+### Added
+- Read-only access to the player's FireRed and Emerald imports.
+- Merged tileset pairs that survive the engine's tileset, behaviour and encounter-type reloads.
+- Composite maps spliced from real map chunks; first composite: Viridian Forest + Petalburg Woods.
+- Headless tests through the engine's real loader, map loading and collision rules.
+
 ## [0.1.0] - 2026-10-25
 
 ### Added

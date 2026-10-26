@@ -8,7 +8,16 @@ import zipfile
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 MOD_ID = "roguelike_mode"
-FILES = ("manifest.json", "main.lua", "README.md", "LICENSE")
+TOP_FILES = ("manifest.json", "main.lua", "README.md", "LICENSE")
+MODULE_DIRS = ("lib", "data")
+
+
+def runtime_files():
+    """The shipped files: top-level files plus every Lua module in lib/ and data/."""
+    files = list(TOP_FILES)
+    for folder in MODULE_DIRS:
+        files += sorted(p.relative_to(ROOT).as_posix() for p in (ROOT / folder).glob("*.lua"))
+    return files
 
 
 def build():
@@ -22,7 +31,8 @@ def build():
     archive = output / f"{MOD_ID}-{version}.zip"
     # Fixed member timestamps make repeated packages byte-identical.
     with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as bundle:
-        for name in FILES:
+        for name in runtime_files():
+            (unpacked / name).parent.mkdir(parents=True, exist_ok=True)
             (unpacked / name).write_bytes((ROOT / name).read_bytes())
             info = zipfile.ZipInfo(f"{MOD_ID}/{name}", (2026, 1, 1, 0, 0, 0))
             info.compress_type = zipfile.ZIP_DEFLATED
