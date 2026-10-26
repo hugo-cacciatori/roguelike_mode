@@ -96,7 +96,7 @@ function Corpus.maps(version)
         for _, cell in ipairs(decoded.cells) do
           if Corpus.classOf(cell.coll) == "water" then water = water + 1 end
         end
-        list[#list + 1] = { id = id, version = version, pair = info.pair, decoded = decoded,
+        list[#list + 1] = { id = id, version = version, pair = info.pair, decoded = decoded, slot = entry.slot,
           env = Corpus.environmentOf(id, Json.decode(raw), water / math.max(1, #decoded.cells)) }
       end
     end

@@ -7,8 +7,9 @@ layer boss), then painted with tiles from FireRed and Emerald, using what the
 two games' own maps show about which tiles belong together.
 
 > **Status: in development (`0.2.0-dev`).** New Game starts a run in a
-> generated forest. Starter draft, encounters, trainers, exits, and the other
-> environments (caves, sea routes, towns, buildings) are not in yet.
+> generated forest with generated wild encounters. Starter draft, trainers,
+> exits, and the other environments (caves, sea routes, towns, buildings) are
+> not in yet.
 
 ## Your adventure is safe
 While the mod is enabled, the game *is* the roguelike: New Game starts a run,
@@ -34,6 +35,9 @@ adventure, even if the game closed unexpectedly while the mod was enabled.
   tiles of the right kind next to tiles they were seen with; `lib/generate.lua`
   lets FireRed and Emerald tiles meet where their edges match, and checks the
   path, boss and trainer spots stay reachable.
+- `lib/wild.lua` generates each area's wild encounters: species that live in
+  that kind of place in either game, at the layer's levels, in the evolution
+  stage that fits the level.
 - `lib/atlas.lua` merges the chosen tilesets into one; `lib/world.lua` builds a
   run's areas from its seed, so a save stores only the seed.
 - `lib/run.lua` turns New Game into a run; `lib/saves.lua` keeps runs in their

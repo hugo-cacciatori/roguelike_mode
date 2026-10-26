@@ -6,7 +6,7 @@
 
 local MODULES = {
   "lib/sources", "lib/catalog", "lib/atlas", "lib/rng", "lib/corpus",
-  "lib/layout", "lib/paint", "lib/generate", "lib/world", "lib/run", "lib/saves",
+  "lib/layout", "lib/paint", "lib/generate", "lib/wild", "lib/world", "lib/run", "lib/saves",
 }
 
 return function(mod)
@@ -26,6 +26,7 @@ return function(mod)
   end
 
   R.atlas.install()
+  R.wild.install()
   -- While enabled the mod owns the game: New Game starts a run and saves go
   -- to the run's own slot (spec §7.E). Switch slots now, before Game3 checks
   -- whether Continue exists.
@@ -46,6 +47,7 @@ return function(mod)
     restore = function()
       R.saves.restore()
       R.world.unregisterAll()
+      R.wild.uninstall()
       R.atlas.uninstall()
       R.run.game = nil
     end,

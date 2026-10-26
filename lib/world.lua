@@ -17,10 +17,12 @@ function World.plan(state)
   }
 end
 
-function World.area(spec)
+function World.area(spec, layer)
   local hit = cache[spec.id]
   if hit and hit.seed == spec.seed then return hit.def, hit.report end
   local def, report = R.generate.area(spec.id, spec.env, spec.seed)
+  -- the encounter table has its own stream so map tweaks never reshuffle it
+  def.roguelike.encounters = R.wild.table(spec.env, layer or 1, R.rng.new(spec.seed * 3 + 101))
   cache[spec.id] = { seed = spec.seed, def = def, report = report }
   return def, report
 end
@@ -29,7 +31,7 @@ end
 function World.build(state, game)
   local defs = {}
   for i, spec in ipairs(World.plan(state)) do
-    defs[i] = World.area(spec)
+    defs[i] = World.area(spec, state.layer)
     if game then World.register(game, defs[i]) end
   end
   return defs
@@ -38,6 +40,7 @@ end
 function World.register(game, def)
   if not (type(game) == "table" and type(game.data) == "table" and type(game.data.maps) == "table") then return end
   game.data.maps[def.id] = def
+  if def.roguelike and def.roguelike.encounters then R.wild.register(def.id, def.roguelike.encounters) end
   registered[def.id] = { game = game, def = def }
 end
 
@@ -47,6 +50,7 @@ function World.unregisterAll()
     if maps and maps[id] == entry.def then maps[id] = nil end
   end
   registered = {}
+  R.wild.unregisterAll()
 end
 
 -- Drop generated areas entirely (the state of a freshly started process).
