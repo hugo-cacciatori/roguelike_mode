@@ -14,7 +14,7 @@ All notable changes to the Roguelike Layer-World Mode mod will be documented in 
 - Runs are generated from their seed and regenerated identically on Continue; a run starts in a generated forest.
 - Generated wild encounters: each area gets a table whose species are learned from both games' wild tables for that kind of environment, whose levels follow the layer's band, and whose forms fit the level (a Lv. 30 member of the Caterpie family is a Butterfree). Fishing keeps the old, good and super rod tiers. The game's own encounter step rolls these tables.
 - Headless tests through the engine's real loader, map loading and collision rules.
-- Game takeover: while enabled, New Game starts a run on the first composite map, and runs save to their own "Roguelike run" slot; the adventure's slot is never written.
+- Game takeover: while enabled, New Game starts a run in its first generated area, and runs save to their own "Roguelike run" slot; the adventure's slot is never written.
 - Crash-safe slot switching: `options.lua` keeps the adventure active, so starting the game without the mod continues the adventure. Without an existing FireRed save, an empty "Adventure" slot is created for that purpose.
 - The title screen's Continue panel is refreshed to show the run; saving a session that is not a run is refused.
 
