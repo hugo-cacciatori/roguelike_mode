@@ -76,15 +76,18 @@ local boot = { continueInfo = rawBeforeMods and { name = rawBeforeMods.name } }
 local fakeGame = { data = game.data, boot = boot, _hasContinueSave = Game3._hasContinueSave }
 Runtime.emit("game.ready", { game = fakeGame })
 check(boot.hasContinue == false, "title hides Continue with no run")
-check(game.data.maps[R.data.chunks.composites[1].id] ~= nil, "game.ready registered the composite maps")
 
--- 4. New Game starts a run at the first composite's entry, and it loads.
+-- 4. New Game starts a run: the first area is generated from the run seed,
+--    registered, and the player stands at its entry.
 local session = newSession("RUNNER")
 local state = R.run.state(session)
-local start = R.run.start()
 check(state and state.layer == 1 and type(state.seed) == "number", "New Game carries run state")
-check(session.map == start.map and session.x == start.x and session.y == start.y, "New Game starts on the composite entry")
+local first = game.data.maps[session.map]
+check(first and first.roguelike and first.roguelike.env, "New Game registered a generated area")
+local entry = first.roguelike.layout.entry
+check(session.x == entry.x and session.y == entry.y, "New Game starts at the generated entry")
 check(Map.load(nil, game, session.map, { depth1Connections = false }), "the run's start map loads")
+local firstCells = first.midLayout.cells
 
 -- 5. Saving writes the run slot only.
 check(save(session), "run save written")
@@ -94,7 +97,18 @@ if scenario == "adventure" then check(unchanged(adventure, "saves/firered/slot1"
 -- 6. Continue resumes the run; the title panel shows it.
 check(loadedName() == "RUNNER", "Continue loads the run")
 local resumed = Schema.fromSaveTable(SaveData.load())
-check(R.run.isRun(resumed) and resumed.map == start.map, "resumed session is the run on its map")
+check(R.run.isRun(resumed) and resumed.map == session.map, "resumed session is the run on its map")
+-- A fresh process has no generated maps: Continue's save.loading rebuilds
+-- them from the saved seed, identically.
+R.world.forget()
+check(game.data.maps[session.map] == nil, "maps gone, as after a restart")
+Runtime.emit("save.loading", { raw = SaveData.load() })
+local rebuilt = game.data.maps[session.map]
+local same = rebuilt ~= nil
+for i, cell in ipairs(rebuilt and rebuilt.midLayout.cells or {}) do
+  same = same and cell.mid == firstCells[i].mid and cell.coll == firstCells[i].coll
+end
+check(same and rebuilt ~= first, "Continue regenerates the same area from the saved seed")
 check(Game3._hasContinueSave({}), "Continue is offered for the run")
 Runtime.emit("game.ready", { game = fakeGame })
 check(boot.hasContinue == true and boot.continueInfo and boot.continueInfo.name == "RUNNER",

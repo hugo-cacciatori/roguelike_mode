@@ -10,7 +10,8 @@ All notable changes to the Roguelike Layer-World Mode mod will be documented in 
 ### Added
 - Read-only access to the player's FireRed and Emerald imports.
 - Merged tileset pairs that survive the engine's tileset, behaviour and encounter-type reloads.
-- Composite maps spliced from real map chunks; first composite: Viridian Forest + Petalburg Woods.
+- Generated areas: a functional layout (path, clearings, grass zones, trainer and boss spots) painted with FireRed and Emerald tiles by a backtracking constraint solver that follows tile classes and neighbours learned from both games' maps; FR and EM tiles meet where their edges match.
+- Runs are generated from their seed and regenerated identically on Continue; a run starts in a generated forest.
 - Headless tests through the engine's real loader, map loading and collision rules.
 - Game takeover: while enabled, New Game starts a run on the first composite map, and runs save to their own "Roguelike run" slot; the adventure's slot is never written.
 - Crash-safe slot switching: `options.lua` keeps the adventure active, so starting the game without the mod continues the adventure. Without an existing FireRed save, an empty "Adventure" slot is created for that purpose.

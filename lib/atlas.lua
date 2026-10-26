@@ -39,12 +39,51 @@ local function newImage(data)
   return image
 end
 
+local decodeMemo = {}
+
+-- One source pair decoded by the engine's own decoder (memoized).
+function Atlas.decode(version, pair)
+  local key = version .. "|" .. pair
+  if not decodeMemo[key] then
+    decodeMemo[key] = assert(Decode.pair(R.sources.cacheFor(version), "native", pair))
+  end
+  return decodeMemo[key]
+end
+
+-- 16x16 RGBA of one metatile as drawn (under, mid and over layers composited),
+-- as a flat 1-based byte array; nil when the pair has no slot for `mid`.
+function Atlas.tilePixels(data, mid)
+  local slot = data.midToSlot[mid]
+  if not slot then return nil end
+  local aw = data.cols * 16
+  local sx, sy = (slot % data.cols) * 16, math.floor(slot / data.cols) * 16
+  local out = {}
+  for li, key in ipairs({ "imageData", "midImageData", "overImageData" }) do
+    local layer
+    for _, l in ipairs(data.layers) do if l.dataKey == key then layer = l.data end end
+    local rgba = layer and layer.getString and layer:getString()
+    if rgba then
+      for py = 0, 15 do
+        for px = 0, 15 do
+          local si = ((sy + py) * aw + sx + px) * 4
+          if li == 1 or rgba:byte(si + 4) > 0 then
+            local di = (py * 16 + px) * 4
+            out[di + 1], out[di + 2], out[di + 3], out[di + 4] =
+              rgba:byte(si + 1), rgba:byte(si + 2), rgba:byte(si + 3), 255
+          end
+        end
+      end
+    end
+  end
+  return out
+end
+
 -- parts: { { version = "firered", pair = "..." }, ... } -> merged tileset
 function Atlas.build(pairId, parts)
   assert(pairId:sub(1, #Atlas.PREFIX) == Atlas.PREFIX, "merged pair ids start with " .. Atlas.PREFIX)
   local decoded, cols, rows, midCount = {}, nil, 0, 0
   for i, part in ipairs(parts) do
-    local data = assert(Decode.pair(R.sources.cacheFor(part.version), "native", part.pair))
+    local data = Atlas.decode(part.version, part.pair)
     cols = cols or data.cols
     assert(data.cols == cols, "roguelike_mode: atlas widths differ for " .. part.pair)
     decoded[i] = { data = data, rowOffset = rows, midOffset = (i - 1) * Atlas.MID_STRIDE }
@@ -101,6 +140,11 @@ function Atlas.register(pairId, parts)
   NativeTileset._pairs[pairId] = registry[pairId].ts
   applyTables(pairId)
   return registry[pairId].ts
+end
+
+-- Behaviour per merged metatile id of a registered pair.
+function Atlas.behaviorsOf(pairId)
+  return registry[pairId] and registry[pairId].behaviors or {}
 end
 
 function Atlas.unregister(pairId)

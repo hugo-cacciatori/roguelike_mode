@@ -105,5 +105,16 @@ if __name__ == "__main__":
     parser.add_argument("--mod", type=Path, default=MOD_ROOT)
     parser.add_argument("--imports", type=Path, default=DEFAULT_IMPORTS)
     parser.add_argument("--suite", choices=SUITES, action="append")
+    parser.add_argument("--script", type=Path, help="run one exploratory Lua script with the harness globals")
     args = parser.parse_args()
-    run(args.engine.resolve(), args.mod.resolve(), args.imports, args.suite or SUITES)
+    if args.script:
+        script = args.script.resolve()
+        engine = args.engine.resolve()
+        previous = Path.cwd()
+        try:
+            os.chdir(engine)
+            runtime(engine, args.mod.resolve(), args.imports, script.parent / "out").execute(script.read_bytes())
+        finally:
+            os.chdir(previous)
+    else:
+        run(args.engine.resolve(), args.mod.resolve(), args.imports, args.suite or SUITES)

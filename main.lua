@@ -1,9 +1,13 @@
 -- Roguelike Layer-World Mode
--- Layers are composite maps spliced from real FireRed and Emerald maps, read
--- from the player's own imports. Modules live in lib/ and data/ and share the
--- table `R`, loaded through mod:read so the mod ships as plain source files.
+-- Every area of a run is generated: a functional layout painted with tiles
+-- from FireRed and Emerald, whose classes and side-by-side rules are learned
+-- from the player's own imports. No base-game map is used. Modules live in
+-- lib/ and data/ and share the table `R`, loaded through mod:read.
 
-local MODULES = { "lib/sources", "lib/catalog", "lib/atlas", "lib/splice", "lib/run", "lib/saves" }
+local MODULES = {
+  "lib/sources", "lib/catalog", "lib/atlas", "lib/rng", "lib/corpus",
+  "lib/layout", "lib/paint", "lib/generate", "lib/world", "lib/run", "lib/saves",
+}
 
 return function(mod)
   local R = { mod = mod, data = {} }
@@ -14,7 +18,7 @@ return function(mod)
     return chunk(R)
   end
 
-  for _, name in ipairs({ "chunks", "starters", "bosses" }) do
+  for _, name in ipairs({ "starters", "bosses" }) do
     R.data[name] = loadFile("data/" .. name)
   end
   for _, rel in ipairs(MODULES) do
@@ -29,30 +33,21 @@ return function(mod)
   R.saves.install()
   R.saves.installHooks(mod)
 
-  local function gameOf(payload)
-    local game = type(payload) == "table" and (payload.game or payload) or nil
-    return type(game) == "table" and type(game.data) == "table" and game or nil
-  end
-
-  -- Composite maps are registered against the live game's map table. Every
-  -- entry point that can reach a map calls ensure, which is idempotent.
-  local function ensure(payload)
-    local game = gameOf(payload)
-    if game then R.splice.registerAll(game) end
-  end
   mod.events:on("game.ready", function(payload)
-    ensure(payload)
-    local game = gameOf(payload)
-    if game then R.saves.refreshTitle(game) end
+    local game = type(payload) == "table" and (payload.game or payload) or nil
+    if type(game) == "table" and type(game.data) == "table" then
+      R.run.game = game
+      R.saves.refreshTitle(game)
+    end
   end)
 
   mod.exports = {
     R = R,
-    ensure = ensure,
     restore = function()
       R.saves.restore()
-      R.splice.unregisterAll()
+      R.world.unregisterAll()
       R.atlas.uninstall()
+      R.run.game = nil
     end,
   }
 end
