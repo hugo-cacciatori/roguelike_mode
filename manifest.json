@@ -4,8 +4,13 @@
   "version": "0.2.0-dev.1",
   "api": 3,
   "entry": "main.lua",
-  "games": ["firered"],
-  "permissions": ["engine_internals"],
+  "games": [
+    "firered"
+  ],
+  "permissions": [
+    "engine_internals"
+  ],
   "description": "Run-based FireRed adventure whose layers are spliced from real Kanto and Hoenn maps. Needs FireRed imported; Emerald adds Hoenn chunks. Development build.",
-  "author": "Hugo Cacciatori"
+  "author": "Hugo Cacciatori",
+  "github": "hugo-cacciatori/roguelike_mode"
 }

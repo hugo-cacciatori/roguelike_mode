@@ -1,4 +1,4 @@
 dist/
+tests/out/
 __pycache__/
 *.pyc
-tests/out/
